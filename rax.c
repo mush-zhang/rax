@@ -36,6 +36,8 @@
 #include <stdio.h>
 #include <errno.h>
 #include <math.h>
+#include <stdbool.h>
+
 #include "rax.h"
 
 #ifndef RAX_MALLOC_INCLUDE
@@ -1945,4 +1947,60 @@ unsigned long raxTouch(raxNode *n) {
         cp++;
     }
     return sum;
+}
+
+
+/**Path label generation**/
+
+// bool raxPathLabelRecursive(int level, int lpad, raxNode *n, const char * prefix) {
+bool raxPathLabelRecursive(raxNode *n, const char * prefix) {
+    // check if the current node is compressed 
+    int numchildren = n->iscompr ? 1 : n->size;
+
+    int numchars = 0;
+
+    if (n->iskey) {
+        // numchars += printf("=%p",raxGetData(n));
+        printf("%s, ", prefix); 
+    }
+
+    // if (level) {
+    //     lpad += (numchildren > 1) ? 7 : 4;
+    //     if (numchildren == 1) lpad += numchars;
+    // }
+    raxNode **cp = raxNodeFirstChildPtr(n);
+    
+    int prefix_len = strlen(prefix);
+    bool curr_printed = false;
+    for (int i = 0; i < numchildren; i++) {
+        char* prefix_new = malloc(prefix_len + n->size + 1);
+        strcpy(prefix_new, prefix); 
+
+        if (numchildren > 1) {
+            prefix_new[prefix_len] = n->data[i];
+            prefix_new[prefix_len + 1] = '\0';
+        } else {
+            strncat(prefix_new, (char*)n->data, n->size); 
+        }
+        raxNode *child;
+        memcpy(&child,cp,sizeof(child));
+        
+        bool child_is_compr = raxPathLabelRecursive(child,prefix_new);
+        if (!curr_printed && !child_is_compr && prefix[0] != '\0') {
+            printf("%s, ", prefix); 
+            curr_printed = true; 
+        }
+        free(prefix_new);
+        cp++;
+
+    }
+    return n->iskey;
+}
+
+/* Show a tree, as outlined in the comment above. */
+void raxPathLabelGen(rax *rax) {
+    char* prefix = "";
+    // raxPathLabelRecursive(0,0,rax->head, prefix);
+    raxPathLabelRecursive(rax->head, prefix);
+    putchar('\n');
 }
