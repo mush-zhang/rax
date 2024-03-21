@@ -2000,7 +2000,6 @@ bool raxPathLabelRecursive(raxNode *n, const char * prefix) {
 /* Show a tree, as outlined in the comment above. */
 void raxPathLabelGen(rax *rax) {
     char* prefix = "";
-    // raxPathLabelRecursive(0,0,rax->head, prefix);
     raxPathLabelRecursive(rax->head, prefix);
     putchar('\n');
 }
